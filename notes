@@ -1,0 +1,25 @@
+connect to the site:
+192.168.99.101:5000
+
+to list local containers:
+$ docker ps -a
+
+to enter a container:
+$ docker exec -it <container_name> /bin/bash
+
+list networks:
+$ docker network ls
+
+to start teamspeak server:
+docker run --rm -p 9987:9987/udp -p 10011:10011 -p 30033:30033 -e TS3SERVER_LICENSE=accept ex01
+
+some sources:
+
+https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-on-ubuntu-18-04
+https://medium.com/@1997corry/running-your-own-gitlab-on-docker-community-edition-39c4a8f99553
+https://about.gitlab.com/install/#debian
+https://jacopretorius.net/2014/02/all-rails-db-rake-tasks-and-what-they-do.html
+https://files.teamspeak-services.com/releases/server/
+https://hub.docker.com/_/teamspeak
+https://docs.docker.com/engine/reference/builder/
+https://www.vultr.com/docs/how-to-install-teamspeak-3-server-on-ubuntu-16-04-64-bit

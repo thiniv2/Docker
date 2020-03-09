@@ -1,0 +1,311 @@
+to install homebrew to 42 computer run the following command:
+
+$ rm -rf $HOME/.brew && git clone --depth=1 https://github.com/Homebrew/brew $HOME/.brew && echo 'export PATH=$HOME/.brew/bin:$PATH' >> $HOME/.zshrc && source $HOME/.zshrc && brew update
+
+$ brew install docker
+$ brew install docker-machine
+
+1. creating a virtual machine:
+$ docker-machine create -d virtualbox Char
+
+'-d' Driver to create machine with
+
+2. getting the virtual machines ip-address:
+$ docker-machine ip Char
+
+3. Define the variables needed by your virtual machine Char in the general env of your
+terminal:
+$ eval $(docker-machine env Char)
+
+we got this by running the following command:
+$ docker-machine env Char
+
+Which then gave us the output:
+
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_HOST="tcp://192.168.99.100:2376"
+export DOCKER_CERT_PATH="/Users/thinguye/.docker/machine/machines/Char"
+export DOCKER_MACHINE_NAME="Char"
+# Run this command to configure your shell:
+# eval $(docker-machine env Char)
+
+4. getting the 'hello-world' container:
+$ docker pull hello-world
+
+5. launching hello-world container:
+$ docker run hello-world
+
+6. launching nginx container:
+$ docker run --name overlord -p 5000:80 --restart=always -d nginx
+
+-p: this option maps the container port 80 to port 5000
+-d: Run container in background and print container ID
+To configure the restart policy for a container, use the --restart flag when using the docker run command.
+'always' = Always restart the container if it stops. If it is manually stopped, it is restarted only when
+Docker daemon restarts or the container itself is manually restarted.
+
+7. get internal ip address of the overlord
+$ docker inspect -f '{{ .NetworkSettings.IPAddress}}' overlord
+
+'-f' format the output using the given Go template
+
+8. docker run -it --rm alpine
+
+'-i' interactive mode (keeps STDIN open even if not attached)
+'-t' allocate pseudo-tty
+'--rm' automatically remove the container when it exits
+
+9. 
+$ apt-get update
+$ apt-get upgrade -y
+$ apt-get install -y build-essential git
+
+'-y' prompt yes
+'build-essential' includes 'gcc' and 'make'
+
+10. creating a volume
+$ docker volume create hatchery
+
+11. list volumes
+$ docker volume ls
+
+12. Launch a mysql container as a background task. It should be able to restart on its
+own in case of error, and the root password of the database should be Kerrigan.
+You will also make sure that the database is stored in the hatchery volume, that
+the container directly creates a database named zerglings, and that the container
+itself is named spawning-pool.
+
+$ docker run --name spawning-pool -d  --restart=on-failure -e MYSQL_ROOT_PASSWORD=Kerrigan -e MYSQL_DATABASE=zerglings -v hatchery mysql
+
+'-e' Set environment variables
+'MYSQL_ROOT_PASSWORD' Set Password for the MySQL root user. This variable is mandatory.
+'MYSQL_DATABASE' Create a New Database on startup. This is optional. If a user is created, the user will be granted superuser access to the database.
+'-d' run container in background and print container ID
+'on-failure' Restart the container if it exits due to an error, which manifests as a non-zero exit code.
+'-v' or '--volume' Consists of three fields, separated by colon characters (:). The fields must be in the correct order, and the meaning of each field is not immediately obvious.
+In the case of bind mounts, the first field is the path to the file or directory on the host machine.
+The second field is the path where the file or directory is mounted in the container.
+The third field is optional, and is a comma-separated list of options, such as ro, consistent, delegated, cached, z, and Z.
+
+
+13. Print the environment variables of the spawning-pool container in one command,
+to be sure that you have configured your container properly.
+
+$ docker inspect -f '{{ .Config.Env}}' spawning-pool
+
+14. Launch a wordpress container as a background task, just for fun. The container
+should be named lair, its 80 port should be bound to the 8080 port of the virtual
+machine, and it should be able to use the spawning-pool container as a database
+service. You can try to access lair on your machine via a web browser, with the
+IP address of the virtual machine as a URL.
+
+$ docker run --name lair -d -p 8080:80 --link spawning-pool wordpress
+
+'--link' addd link to another container
+
+15. launch phpmyadmin
+
+$ docker run --name roach-warden -p 8081:80 --link spawning-pool -d phpmyadmin/phpmyadmin
+
+16. look up spawning-pool container's log in real time
+
+$ docker logs -f spawning pool
+
+The -f or --follow option will show live log output.
+
+17. display currenlty active container in Char machine
+
+$ docker ps
+
+18. relaunch overlord container
+
+$ docker restart overlord
+
+19. launch container named Abathur....
+
+$ docker run --name Abathur -p 3000:3000 -v ~/:/root -dit python:2-slim
+
+'-d' Run container in background and print container ID
+'-i' interactive mode
+'-t' allocate a pseudo-TTY
+
+$ docker exec Abathur pip install flask
+$ echo 'from flask import Flask\napp = Flask(__name__)\n@app.route("/")\ndef hello_world():\n\treturn "<h1>Hello, World!</h1>"' > app.py
+$ docker exec -e FLASK_APP=/root/docker/app.py Abathur flask --host=0.0.0.0 -p 3000
+
+if we run only '$ docker exec Abathur flask run' it says we need to provide "FLASK_APP", thus the ' -e FLASK_APP/root/docker/app.py'
+make the server publicly available simply by adding --host=0.0.0.0
+
+20. create a local swarm, Char should be its manager
+
+$ docker swarm init --advertise-addr $(docker-machine ip Char)
+
+'$(docker-machine ip Char)' gets the ip of the Char machine
+The --advertise-addr flag configures the manager node to publish its address.
+
+'docker info' shows Char machine is now a manager
+
+21. create new virtual-machine using virtualbox driver and name it Aiur
+
+$ docker-machine create -d virtualbox Aiur
+
+22. Turn Aiur into a slave of the local swarm in which Char is leader (the command to
+take control of Aiur is not requested).
+
+$ docker-machine ssh Aiur "docker swarm join --token $(docker swarm join-token worker -q) $(docker-machine ip Char)"
+
+so what happens here is, we first log into Aiur using ssh, then we run 'docker swarm join --token' and we get the worker token
+using '$(docker swarm join-token worker -q)', the '-q' flag means 'Only display token.'
+then finally we get the ip of the Char machine using: $(docker-machine ip Char)
+
+22. Create an overlay-type internal network that you will name overmind.
+
+$ docker network create -d overlay overmind
+
+23. Launch a rabbitmq SERVICE that will be named orbital-command. You should
+define a specific user and password for the RabbitMQ service, they can be whatever
+you want. This service will be on the overmind network.
+
+24. Launch a rabbitmq SERVICE that will be named orbital-command. You should
+define a specific user and password for the RabbitMQ service, they can be whatever
+you want. This service will be on the overmind network.
+
+$ docker service create ---name orbital-command --network -e RABBITMQ_DEFAULT_USER=rabbit -e RABBITMQ_DEFAULT_PASS=rabbit rabbitmq
+
+'--name' specify name
+'--network' specify network
+'-e' set environment variables
+If you wish to change the default username and password of guest / guest,
+you can do so with the RABBITMQ_DEFAULT_USER and RABBITMQ_DEFAULT_PASS environmental variables.
+
+25. List all the services of the local swarm.
+
+$ docker service ls
+
+26. Launch a 42school/engineering-bay service in two replicas and make sure that
+the service works properly (see the documentation provided at hub.docker.com).
+This service will be named engineering-bay and will be on the overmind network.
+
+$ docker service create -d --name engineering-bay --network overmind --replicas 2 -e OC_USERNAME=rabbit -e OC_PASSWD=rabbit 42school/engineering-bay
+
+You must have an orbital-command running on your host or swarm, accessible with the same name into your network.
+To connect to this orbital-command, you must set a:
+
+OC_USERNAME : Username used to access to orbital-command
+OC_PASSWD : Password used to access to orbital-command
+
+27. Get the real-time logs of one the tasks of the engineering-bay service.
+
+$ docker service logs -f $(docker service ps engineering-bay -f "name=engineering-bay.1" -q)
+
+first '-f' means "Follow log output"
+second '-f' is format
+'-q' only display task ID
+
+28. group of zergs is attacking orbital-command, and shutting down
+the engineering-bay service won’t help at all... You must send a troup of Marines
+to eliminate the intruders. Launch a 42school/marine-squad in two replicas,
+and make sure that the service works properly (see the documentation provided
+at hub.docker.com). This service will be named... marines and will be on the
+overmind network.
+
+$ docker service create -d --name marines --network overmind --replicas 2 -e OC_USERNAME=rabbit -e OC_PASSWD=rabbit 42school/marine-squad
+
+29. Display all the tasks of the marines service.
+
+$ docker service ps marines
+
+30. Increase the number of copies of the marines service up to twenty
+
+$ docker service scale marines=20
+
+31. Force quit and delete all the services on the local swarm, in one command.
+
+$ docker service rm  $(docker service ls -q)
+
+'-q' prints only the service's ID
+
+32. Force quit and delete all the containers (whatever their status), in one command.
+
+$ docker rm -f $(docker ps -a -q)
+
+'-f' force remove
+'-a' Show all containers (default shows just running)
+'-q' Only display numeric IDs
+
+33. Delete all the container images stored on the Char virtual machine, in one command
+as well.
+
+$ docker rmi -f $(docker images -a -q)
+
+'rmi' removes images by their ID.
+
+34. Delete the Aiur virtual machine without using rm -rf.
+
+$ docker-machine rm -y Aiur
+
+'-y' prompt yes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DOCKERFILES 
+
+ex00.
+
+$ docker build -t ex00 .
+$ docker run -ti --rm ex00
+
+ex01.
+
+$ docker build -t ex01 .
+$ docker run -ti --rm -p 9987:9987/udp -p 10011:10011 -p 30033:30033 ex01
+
+ex02.
+
+'db:migrate' Runs migrations for the current environment that have not run yet.
+By default it will run migrations only in the development environment.
+
+'db:seed' Runs the db/seeds.rb file.
+
+When we need to install a database on a new device or in a new environment,
+we may want to add default data to the tables in the process.
+This is called seeding the database and allows us to enter data quickly and easily to existing database tables.
+
+Seeding a Database
+In Rails, we seed a database by using Rake and the db/seeds.rb file.
+
+docker build -t ft-rails:on-build . — Build an image from your Dockerfile
+docker build -t ex02 . — Build an image from Dockerfile provided by task
+docker run -it --rm -p 3000:3000 ex02 — Run created image
+
+ex03.
+
+$ docker build -t ex03 .
+$ docker run -it --rm -p 8080:80 -p 8022:22 -p 8443:443 --privileged ex03
+
+to get the ssh key copy the file ~/.ssh/id_rsa.pub
+
+02_BONUS
+
+b00 mc_server.
+
+$ docker build -t mc-server .
+$ docker run -ti --rm -p 25565:25565 mc-server
+
+b01 c-environment
+
+$ docker build -t c-env .
+$ docker run -ti --rm c-env
+
+b02 java-environment
+
+$ docker build -t java .
+$ docker run -ti --rm java
+
+b03 python-environment
+
+to check the python version run:
+
+$ python3.6 -V
+
+$ docker build -t python .
+$ docker run -ti --rm python
