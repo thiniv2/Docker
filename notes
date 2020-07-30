@@ -1,5 +1,8 @@
+for storage reasons move .docker file to goinfre folder and use following command in home directory:
+$ ln -s goingfre/.docker .
+
 connect to the site:
-192.168.99.101:5000
+192.168.99.100:5000
 
 to list local containers:
 $ docker ps -a

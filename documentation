@@ -58,10 +58,13 @@ $ docker inspect -f '{{ .NetworkSettings.IPAddress}}' overlord
 9. 
 $ apt-get update
 $ apt-get upgrade -y
-$ apt-get install -y build-essential git
+$ apt-get install -y build-essential git vim
 
 '-y' prompt yes
 'build-essential' includes 'gcc' and 'make'
+to test this exercise run the following command first:
+$ docker run -it --rm debian
+
 
 10. creating a volume
 $ docker volume create hatchery
@@ -105,7 +108,7 @@ $ docker run --name lair -d -p 8080:80 --link spawning-pool wordpress
 
 15. launch phpmyadmin
 
-$ docker run --name roach-warden -p 8081:80 --link spawning-pool -d phpmyadmin/phpmyadmin
+$ docker run --name roach-warden -p 8081:80 --link spawning-pool:db -d phpmyadmin/phpmyadmin
 
 16. look up spawning-pool container's log in real time
 
@@ -130,13 +133,20 @@ $ docker run --name Abathur -p 3000:3000 -v ~/:/root -dit python:2-slim
 '-t' allocate a pseudo-TTY
 
 $ docker exec Abathur pip install flask
-$ echo 'from flask import Flask\napp = Flask(__name__)\n@app.route("/")\ndef hello_world():\n\treturn "<h1>Hello, World!</h1>"' > app.py
-$ docker exec -e FLASK_APP=/root/docker/app.py Abathur flask --host=0.0.0.0 -p 3000
 
-if we run only '$ docker exec Abathur flask run' it says we need to provide "FLASK_APP", thus the ' -e FLASK_APP/root/docker/app.py'
+$ docker exec Abathur sh -c "echo 'from flask import Flask\napp = Flask(__name__)\n@app.route(\"/\")\ndef hello_world():\n\treturn \"<h1>Hello, World</h1>\"' > ~/app.py"
+
+In order to execute multiple commands using the “docker exec” command, execute “docker exec” with the “sh”
+process and use the “-c” option to read the command as a string.
+
+$ docker exec -e FLASK_APP=/root/docker/app.py Abathur flask run --host=0.0.0.0 -p 3000
+
+if we run only '$ docker exec Abathur flask run' it says we need to provide "FLASK_APP", thus the ' -e FLASK_APP/root/app.py'
 make the server publicly available simply by adding --host=0.0.0.0
 
 20. create a local swarm, Char should be its manager
+
+(you must run this in Char machine!)
 
 $ docker swarm init --advertise-addr $(docker-machine ip Char)
 
@@ -219,6 +229,9 @@ $ docker service ps marines
 
 $ docker service scale marines=20
 
+to follow the marines logs:
+$ docker service logs -f marines
+
 31. Force quit and delete all the services on the local swarm, in one command.
 
 $ docker service rm  $(docker service ls -q)
@@ -258,6 +271,11 @@ ex01.
 
 $ docker build -t ex01 .
 $ docker run -ti --rm -p 9987:9987/udp -p 10011:10011 -p 30033:30033 ex01
+
+to connect teamspeak server connect to the ip address of Char virtual-machine
+$ docker-machine ip Char
+
+then enter the token key given when running the image
 
 ex02.
 
@@ -309,3 +327,8 @@ $ python3.6 -V
 
 $ docker build -t python .
 $ docker run -ti --rm python
+
+b04 golang-environment
+
+$ docker build -t golang .
+$ docker run --ti --rm golang
