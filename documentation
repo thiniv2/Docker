@@ -291,11 +291,12 @@ This is called seeding the database and allows us to enter data quickly and easi
 Seeding a Database
 In Rails, we seed a database by using Rake and the db/seeds.rb file.
 
-to test this go to ex02_test folder and run the following:
+to test this, first go to ex02 folder and run:
+$ docker build -t ft-rails:on-build . -Build an image from your Dockerfile
 
-docker build -t ft-rails:on-build . -Build an image from your Dockerfile
-docker build -t ex02 . —Build an image from Dockerfile provided by task
-docker run -it --rm -p 3000:3000 ex02 —Run created image
+then go to ex02_test folder and run:
+$ docker build -t ex02 . —Build an image from Dockerfile provided by task
+$ docker run -it --rm -p 3000:3000 ex02 —Run created image
 
 ex03.
 

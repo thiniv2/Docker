@@ -13,6 +13,9 @@ $ docker exec -it <container_name> /bin/bash
 list networks:
 $ docker network ls
 
+delete all images:
+$ docker rmi -f $(docker images -aq)
+
 to start teamspeak server:
 docker run --rm -p 9987:9987/udp -p 10011:10011 -p 30033:30033 -e TS3SERVER_LICENSE=accept ex01
 
